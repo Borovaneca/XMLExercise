@@ -2,11 +2,9 @@ package com.example.productShop.services.user;
 
 import com.example.productShop.entities.Product;
 import com.example.productShop.entities.User;
-import com.example.productShop.entities.dtos.product.ProductNameAndPriceDTO;
-import com.example.productShop.entities.dtos.product.ProductSoldCountDTO;
-import com.example.productShop.entities.dtos.user.UserAndProductCountDTO;
 import com.example.productShop.entities.dtos.user.UserFirstNameAndLastNameDTO;
-import com.example.productShop.entities.dtos.user.UserSoldProductDTO;
+import com.example.productShop.entities.dtos.user.UsersDTO;
+import com.example.productShop.entities.dtos.user.ex7.UserSoldProductDTO;
 import com.example.productShop.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,20 +41,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String findAllUsersWithSoldProductsToAtLeastOneBuyer() throws IOException, JAXBException {
-        List<User> allBySellingProductsBuyerIsNotNullOrderByLastNameAscFirstNameAsc = this.userRepository.findAllBySellingProductsBuyerIsNotNullOrderByLastNameAscFirstNameAsc();
-        if (allBySellingProductsBuyerIsNotNullOrderByLastNameAscFirstNameAsc.isEmpty()) return NO_USERS_WITH_SOLD_PRODUCTS;
-        List<UserFirstNameAndLastNameDTO> usersDTO = allBySellingProductsBuyerIsNotNullOrderByLastNameAscFirstNameAsc.stream()
-                .map(user -> {
-                    Set<Product> filteredProducts = user.getSellingProducts().stream().filter(product -> product.getBuyer() != null).collect(Collectors.toSet());
-                    user.setSellingProducts(filteredProducts);
-
-                    return this.mapper.map(user, UserFirstNameAndLastNameDTO.class);
+        List<User> allBySellingProductsBuyerIsNotNullOrderByLastNameAscFirstNameAsc = this.userRepository.findAllBySellingProductsBuyerIsNotNullOrderByLastNameAscFirstNameAsc()
+                .stream().map(u -> {
+                    Set<Product> filteredProducts = u.getSellingProducts().stream().filter(product -> product.getBuyer() != null).collect(Collectors.toSet());
+                    u.setSellingProducts(filteredProducts);
+                    return u;
                 }).toList();
-        UserSoldProductDTO userSoldProductDTO = new UserSoldProductDTO(usersDTO);
-        JAXBContext context = JAXBContext.newInstance(UserSoldProductDTO.class);
+        if (allBySellingProductsBuyerIsNotNullOrderByLastNameAscFirstNameAsc.isEmpty()) return NO_USERS_WITH_SOLD_PRODUCTS;
+        UsersDTO userDTO = new UsersDTO(allBySellingProductsBuyerIsNotNullOrderByLastNameAscFirstNameAsc);
+        JAXBContext context = JAXBContext.newInstance(UsersDTO.class);
         Marshaller marshaller = context.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-        marshaller.marshal(userSoldProductDTO, new FileWriter(USER_WITH_SOLD_PRODUCTS_FILE_PATH.toAbsolutePath().toString()));
+        marshaller.marshal(userDTO, new FileWriter(USER_WITH_SOLD_PRODUCTS_FILE_PATH.toAbsolutePath().toString()));
 
         return USERS_WITH_SOLD_PRODUCTS_SAVED_SUCCESSFULLY;
     }
@@ -68,26 +64,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String findAllUsersWhoHaveAtLeastOneProductSoldOrderBySellingProducts() throws JAXBException, IOException {
-        List<User> users = this.userRepository.findAllUsersWhoHaveAtLeastOneProductSoldOrderBySellingProducts();
-        List<UserAndProductCountDTO> userWithProducts = users
+        List<User> users = this.userRepository.findAllUsersWhoHaveAtLeastOneProductSoldOrderBySellingProducts()
                 .stream()
                 .sorted(Comparator.comparing(User::getSellingProductsSize).reversed().thenComparing(User::getLastName))
-                .map(user -> {
-                    List<ProductNameAndPriceDTO> nameAndPrice = user.getSellingProducts().stream().map(products -> mapper.map(products, ProductNameAndPriceDTO.class)).collect(Collectors.toList());
-                    UserAndProductCountDTO userDTO = this.mapper.map(user, UserAndProductCountDTO.class);
-                    userDTO.getSellingProducts().forEach(product -> {
-                        product.setProduct(nameAndPrice);
-                        product.setCount(nameAndPrice.size());
-                    });
-                    return userDTO;
-                })
                 .collect(Collectors.toList());
 
-        if (userWithProducts.isEmpty()) return NO_DATA_IN_FOR_USERS;
-        JAXBContext context = JAXBContext.newInstance(UserAndProductCountDTO.class);
+        UserSoldProductDTO userSoldProductDTO = new UserSoldProductDTO(users);
+
+        if (users.isEmpty()) return NO_DATA_IN_FOR_USERS;
+        JAXBContext context = JAXBContext.newInstance(UserSoldProductDTO.class);
         Marshaller marshaller = context.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-        marshaller.marshal(userWithProducts, new FileWriter(USERS_AND_PRODUCTS_FILE_PATH.toAbsolutePath().toFile()));
+        marshaller.marshal(userSoldProductDTO, new FileWriter(USERS_AND_PRODUCTS_FILE_PATH.toAbsolutePath().toFile()));
 
         return USERS_AND_PRODUCTS_SAVED_SUCCESSFULLY;
     }

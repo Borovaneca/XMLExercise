@@ -14,8 +14,8 @@ public interface SeedService {
 
     default String seedAllData() throws IOException, JAXBException {
 
-        this.seedUsers();
         this.seedCategories();
+        this.seedUsers();
         this.seedProducts();
 
         return ALL_DATA_SEEDED_SUCCESSFULLY;

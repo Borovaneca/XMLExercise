@@ -1,8 +1,8 @@
-package com.example.productShop.entities.dtos.category;
+package com.example.productShop.entities.dtos.category.wrappers;
 
+import com.example.productShop.entities.dtos.category.CategoryNameDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.xml.bind.annotation.*;
@@ -14,12 +14,12 @@ import java.util.List;
 @Setter
 @Getter
 @XmlRootElement(name = "categories")
-public class CategorySeedDTO {
+public class CategoryWrapperSeedDTO {
 
     @XmlElement(name = "category")
     private List<CategoryNameDTO> categories;
 
-    public CategorySeedDTO() {
+    public CategoryWrapperSeedDTO() {
         this.categories = new ArrayList<>();
     }
 }

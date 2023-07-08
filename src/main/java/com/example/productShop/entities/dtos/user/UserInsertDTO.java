@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.*;
 @AllArgsConstructor
 @XmlRootElement(name = "user")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class UserDataDTO {
+public class UserInsertDTO {
 
     @XmlAttribute(name = "first-name")
     private String firstName;

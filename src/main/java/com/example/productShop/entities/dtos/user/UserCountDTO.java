@@ -1,6 +1,7 @@
 package com.example.productShop.entities.dtos.user;
 
 
+import com.example.productShop.entities.dtos.user.ex7.UserAndProductCountDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

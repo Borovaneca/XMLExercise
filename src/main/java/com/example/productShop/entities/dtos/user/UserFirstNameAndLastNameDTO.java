@@ -1,13 +1,13 @@
 package com.example.productShop.entities.dtos.user;
 
-import com.example.productShop.entities.dtos.product.ProductWithBuyerDTO;
+import com.example.productShop.entities.dtos.product.ProductsSoldDTO;
+import com.example.productShop.entities.dtos.user.ex7.ProductSoldCountDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.xml.bind.annotation.*;
-import java.util.List;
 
 @Getter
 @Setter
@@ -21,7 +21,7 @@ public class UserFirstNameAndLastNameDTO {
     private String firstName;
     @XmlAttribute(name = "last-name")
     private String lastName;
-    @XmlElementWrapper(name = "sold-products")
-    private List<ProductWithBuyerDTO> sellingProducts;
+    @XmlElement(name = "sold-products")
+    private ProductsSoldDTO product;
 
 }

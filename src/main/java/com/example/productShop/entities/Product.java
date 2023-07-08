@@ -1,5 +1,7 @@
 package com.example.productShop.entities;
 
+import com.example.productShop.entities.dtos.user.ex7.ProductNameAndPriceDTO;
+import com.example.productShop.entities.dtos.user.ex7.ProductSoldCountDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,7 +12,9 @@ import org.hibernate.annotations.FetchMode;
 
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -39,4 +43,12 @@ public class Product extends BaseEntity {
     @Fetch(FetchMode.JOIN)
     private Set<Category> categories;
 
+
+    public ProductNameAndPriceDTO toProductNameAndPriceDTO() {
+        return new ProductNameAndPriceDTO(name, price);
+    }
+
+    public ProductSoldCountDTO toProductSoldCount(List<Product> products) {
+        return new ProductSoldCountDTO(products.size(), products.stream().map(Product::toProductNameAndPriceDTO).collect(Collectors.toList()));
+    }
 }

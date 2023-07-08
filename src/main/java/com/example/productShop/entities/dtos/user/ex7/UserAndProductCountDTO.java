@@ -1,13 +1,11 @@
-package com.example.productShop.entities.dtos.user;
+package com.example.productShop.entities.dtos.user.ex7;
 
-import com.example.productShop.entities.dtos.product.ProductSoldCountDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.xml.bind.annotation.*;
-import java.util.List;
 
 @Getter
 @Setter
@@ -25,5 +23,5 @@ public class UserAndProductCountDTO {
     @XmlAttribute(name = "age")
     private Integer age;
     @XmlElement(name = "sold-products")
-    private List<ProductSoldCountDTO> sellingProducts;
+    private ProductSoldCountDTO sellingProducts;
 }

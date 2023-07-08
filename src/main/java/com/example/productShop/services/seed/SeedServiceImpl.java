@@ -2,9 +2,9 @@ package com.example.productShop.services.seed;
 import com.example.productShop.entities.Category;
 import com.example.productShop.entities.Product;
 import com.example.productShop.entities.User;
-import com.example.productShop.entities.dtos.category.CategorySeedDTO;
+import com.example.productShop.entities.dtos.category.wrappers.CategoryWrapperSeedDTO;
 import com.example.productShop.entities.dtos.product.ProductSeedDTO;
-import com.example.productShop.entities.dtos.user.UserImportDTO;
+import com.example.productShop.entities.dtos.user.wrappers.UserWrapperImportDTO;
 import com.example.productShop.repositories.CategoryRepository;
 import com.example.productShop.repositories.ProductRepository;
 import com.example.productShop.repositories.UserRepository;
@@ -19,7 +19,7 @@ import javax.xml.bind.Unmarshaller;
 import java.io.*;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -50,11 +50,11 @@ public class SeedServiceImpl implements SeedService {
     @Override
     public String seedUsers() throws IOException, JAXBException {
         if (this.userRepository.count() > 0) return USER_DATA_ALREADY_SEEDED;
-        JAXBContext context = createContext(UserImportDTO.class);
+        JAXBContext context = createContext(UserWrapperImportDTO.class);
         Unmarshaller unmarshaller = context.createUnmarshaller();
         FileReader fileReader = new FileReader(USER_XML_FILE_PATH.toAbsolutePath().toString());
-        UserImportDTO userImportDTO = (UserImportDTO) unmarshaller.unmarshal(fileReader);
-        List<User> users = userImportDTO.getUsers().stream()
+        UserWrapperImportDTO userWrapperImportDTO = (UserWrapperImportDTO) unmarshaller.unmarshal(fileReader);
+        List<User> users = userWrapperImportDTO.getUsers().stream()
                 .map(user -> new User(user.getFirstName(), user.getLastName(), user.getAge(), new HashSet<>(), new HashSet<>(), new HashSet<>()))
                 .toList();
         users.forEach(user -> {
@@ -75,11 +75,11 @@ public class SeedServiceImpl implements SeedService {
     @Override
     public String seedCategories() throws IOException, JAXBException {
         if (this.categoryRepository.count() > 0) return CATEGORY_DATA_ALREADY_SEEDED;
-        JAXBContext context = JAXBContext.newInstance(CategorySeedDTO.class);
+        JAXBContext context = JAXBContext.newInstance(CategoryWrapperSeedDTO.class);
         Unmarshaller unmarshaller = context.createUnmarshaller();
         FileReader xmlReader = new FileReader(CATEGORIES_XML_FILE_PATH.toAbsolutePath().toString());
-        CategorySeedDTO categorySeedDTO = (CategorySeedDTO) unmarshaller.unmarshal(xmlReader);
-        List<Category> categories = categorySeedDTO.getCategories()
+        CategoryWrapperSeedDTO categoryWrapperSeedDTO = (CategoryWrapperSeedDTO) unmarshaller.unmarshal(xmlReader);
+        List<Category> categories = categoryWrapperSeedDTO.getCategories()
                 .stream()
                 .map(cn -> new Category(cn.getName()))
                 .toList();
@@ -93,11 +93,24 @@ public class SeedServiceImpl implements SeedService {
         JAXBContext context = createContext(ProductSeedDTO.class);
         Unmarshaller unmarshaller = context.createUnmarshaller();
         ProductSeedDTO unmarshal = (ProductSeedDTO) unmarshaller.unmarshal(new FileReader(PRODUCTS_XML_FILE_PATH.toAbsolutePath().toString()));
+        List<User> randomList = this.userRepository.findAll();
+        List<Category> categoriesList = this.categoryRepository.findAll();
         List<Product> products = unmarshal.getProducts().stream()
                 .map(product -> {
-                    User randomSeller = this.userRepository.getRandomEntity().orElseThrow(IllegalArgumentException::new);
-                    User randomBuyer = this.userRepository.getRandomEntity().orElseThrow(IllegalArgumentException::new);
-                    Set<Category> categories = this.categoryRepository.getRandomEntities().orElseThrow(IllegalArgumentException::new);
+                    User randomSeller = null;
+                    User randomBuyer = null;
+                    while (randomSeller == randomBuyer) {
+                        randomSeller = randomList.get(ThreadLocalRandom.current().nextInt(1, randomList.size()));
+                        randomBuyer = randomList.get(ThreadLocalRandom.current().nextInt(1, randomList.size()));
+                    }
+                    Set<Category> categories = new HashSet<>();
+                    Category firstRandomCategory = null;
+                    Category secondRandomCategory = null;
+                    while (firstRandomCategory == secondRandomCategory) {
+                        firstRandomCategory = categoriesList.get(ThreadLocalRandom.current().nextInt(0, categoriesList.size()));
+                        secondRandomCategory = categoriesList.get(ThreadLocalRandom.current().nextInt(0, categoriesList.size()));
+                    }
+                    categories = Set.of(firstRandomCategory, secondRandomCategory);
 
                     Product currentProduct = new Product();
                     currentProduct.setName(product.getName());

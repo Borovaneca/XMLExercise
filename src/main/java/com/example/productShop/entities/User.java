@@ -1,4 +1,7 @@
 package com.example.productShop.entities;
+import com.example.productShop.entities.dtos.user.ex7.ProductNameAndPriceDTO;
+import com.example.productShop.entities.dtos.user.ex7.ProductSoldCountDTO;
+import com.example.productShop.entities.dtos.user.ex7.UserAndProductCountDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,7 +11,9 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import javax.validation.constraints.Size;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -51,5 +56,23 @@ public class User extends BaseEntity {
     public Integer getSellingProductsSize() {
         return this.sellingProducts.size();
     }
+
+    public UserAndProductCountDTO toUserAndProductCountDTO() {
+        return new UserAndProductCountDTO(firstName, lastName, age, new ProductSoldCountDTO(sellingProducts.size(),
+                sellingProducts.stream().map(Product::toProductNameAndPriceDTO).collect(Collectors.toList())));
+    }
+
+    public List<ProductSoldCountDTO> toProductSoldCountDTO(Set<Product> products) {
+
+        return products.stream().map(product ->{
+            ProductSoldCountDTO productSoldCountDTO = new ProductSoldCountDTO();
+            List<ProductNameAndPriceDTO> productsWithNames = products.stream().map(Product::toProductNameAndPriceDTO)
+                    .collect(Collectors.toList());
+            productSoldCountDTO.setCount(productsWithNames.size());
+            productSoldCountDTO.setProduct(productsWithNames);
+            return productSoldCountDTO;
+        }).collect(Collectors.toList());
+    }
+
 
 }
